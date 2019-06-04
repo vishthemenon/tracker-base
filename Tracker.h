@@ -2,7 +2,7 @@
 #define ARUCO_TRACKING_TRACKER_H
 
 #include <opencv2/core.hpp>
-#include "camera-calibration/CVCalibration.h"
+#include "../camera-calibration/CVCalibration.h"
 
 using namespace std;
 using namespace cv;

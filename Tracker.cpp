@@ -54,7 +54,7 @@ bool Tracker::startStreamingTrack(int port) {
   Vec3d rotationVec, translationVec;
   int frameno = 0;
   
-  cout << "FrameNo \t Timestamp \t RunningTime \t FPS \t MarkerID \t Dist1 \t Dist2 \t Dist3\n";
+  cout << "FrameNo\t\tTimestamp\t\t\t\t\tRunningTime\t\tFPS\t\tMarkerID\t\tDist1\t\tDist2\t\tDist3\n";
   
   while (true) {
     if (!vid.read(frame)) {
@@ -69,13 +69,13 @@ bool Tracker::startStreamingTrack(int port) {
       auto t = time(nullptr);
       auto tm = *localtime(&t);
       frameno++;
-      cout << frameno << "\t"
-           << put_time(&tm, "%d-%m %H-%M-%S") << "\t"
-           << avgDur(dur) << "\t"
-           << avgFPS() << "\t"
-           << translationVec[1] << "\t"
-           << translationVec[2] << "\t"
-           << translationVec[3] << "\t"
+      cout << frameno << "\t\t"
+           << put_time(&tm, "%d-%m %H-%M-%S") << "\t\t\t\t\t"
+           << avgDur(dur) << "\t\t"
+           << avgFPS() << "\t\t"
+           << translationVec[1] << "\t\t"
+           << translationVec[2] << "\t\t"
+           << translationVec[3] << "\t\t"
            << endl;
     }
   }
