@@ -60,9 +60,8 @@ void Tracker::loopedTracking(VideoCapture vid) {
     };
     
     auto start = static_cast<clock_t>(CLOCK());
-    getPose(frame, translationVec, rotationVec);
-    if (getPose(frame, translationVec, rotationVec) == 1) {
-      aruco::drawAxis(frame, cameraMatrix, distCoeffs, rotationVec, translationVec, 0.08f);
+    if (getPose(frame, translationVec, rotationVec) > 0) {
+      aruco::drawAxis(frame, cameraMatrix, distCoeffs, rotationVec, translationVec, 8);
       double dur = CLOCK() - start;
       auto t = time(nullptr);
       auto tm = *localtime(&t);
