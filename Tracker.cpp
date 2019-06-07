@@ -82,6 +82,8 @@ void Tracker::loopedTracking(VideoCapture vid) {
 
 bool Tracker::startStreamingTrack(int port) {
   VideoCapture vid(port);
+//  vid.set(CAP_PROP_FRAME_WIDTH,640);
+//  vid.set(CAP_PROP_FRAME_HEIGHT,480);
   if (!vid.isOpened()) {
     cerr << "Unable to read video stream. Is the camera mount path correct?\n";
     return false;
