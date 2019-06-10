@@ -122,7 +122,7 @@ void Tracker::getOffsetPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &otVec) 
   Mat temp;
   Mat R_ct = Mat::eye(3, 3, CV_64F);
   Rodrigues(rVec, R_ct);
-  Vec3d landingOffset = {4.0, 4.0, 0};
+  Vec3d landingOffset = {14.78, 19.17, 0}; // TODO: Abstract this stuff into board logic
   temp = R_ct * landingOffset;
   temp = temp + tVec;
   otVec[0] = temp.at<double>(0, 0);
