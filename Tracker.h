@@ -21,7 +21,8 @@ public:
   bool startStreamingTrack(int port = 0);
   bool startVideoTrack(const string& fname);
   
-  void correctedPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &ctVec) const;
+  void getOffsetPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &otVec);
+  void getGlobalPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &ctVec) const;
   void smaPose(const Vec3d &ctVec, Vec3d &sctVec);
 };
 

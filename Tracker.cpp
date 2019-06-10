@@ -93,7 +93,7 @@ void Tracker::loopedTracking(VideoCapture vid) {
     
     auto start = static_cast<clock_t>(CLOCK());
     if (getPose(frame, tVec, rVec) > 0) {
-      correctedPose(rVec, tVec, ctVec);
+      getOffsetPose(rVec, tVec, ctVec);
       smaPose(ctVec, sctVec);
       
       double dur = CLOCK() - start;
@@ -118,7 +118,19 @@ void Tracker::loopedTracking(VideoCapture vid) {
   }
 }
 
-void Tracker::correctedPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &ctVec) const {
+void Tracker::getOffsetPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &otVec) {
+  Mat temp;
+  Mat R_ct = Mat::eye(3, 3, CV_64F);
+  Rodrigues(rVec, R_ct);
+  Vec3d landingOffset = {4.0, 4.0, 0};
+  temp = R_ct * landingOffset;
+  temp = temp + tVec;
+  otVec[0] = temp.at<double>(0, 0);
+  otVec[1] = temp.at<double>(1, 0);
+  otVec[2] = temp.at<double>(2, 0);
+}
+
+void Tracker::getGlobalPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &ctVec) const {
   Mat R_flip = Mat::zeros(3, 3, CV_64F);
   R_flip.at<double>(0, 0) = 1.0;
   R_flip.at<double>(1, 1) = -1.0;
@@ -132,8 +144,8 @@ void Tracker::correctedPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &ctVec) 
   Matx<double, 1, 3> tVect = tVec.t();
   Mat tVecC = -1 * (R_tc * tVec).t();
   
-  ctVec[0] = -1 * (tVecC.at<double>(0, 0) - 0); // TODO: Abstract this into the board logic
-  ctVec[1] = tVecC.at<double>(0, 1) - 0;
+  ctVec[0] = -1 * (tVecC.at<double>(0, 0)); // TODO: Abstract this into the board logic
+  ctVec[1] = tVecC.at<double>(0, 1);
   ctVec[2] = tVecC.at<double>(0, 2);
 }
 
