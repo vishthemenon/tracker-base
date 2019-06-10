@@ -123,8 +123,8 @@ void Tracker::correctedPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &ctVec) 
   Matx<double, 1, 3> tVect = tVec.t();
   Mat tVecC = -1 * (R_tc * tVec).t();
   
-  ctVec[0] = -1 * (tVecC.at<double>(0, 0) - 7.9); // TODO: Abstract this into the board logic
-  ctVec[1] = tVecC.at<double>(0, 1) - 7.9;
+  ctVec[0] = -1 * (tVecC.at<double>(0, 0) - 0); // TODO: Abstract this into the board logic
+  ctVec[1] = tVecC.at<double>(0, 1) - 0;
   ctVec[2] = tVecC.at<double>(0, 2);
 }
 
