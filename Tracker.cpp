@@ -90,28 +90,30 @@ void Tracker::loopedTracking(VideoCapture vid) {
       cerr << "Unable to read next frame. Ending tracking.\n";
       break;
     };
-    
+  
     auto start = static_cast<clock_t>(CLOCK());
-    if (getPose(frame, tVec, rVec) > 0) {
-      getOffsetPose(rVec, tVec, ctVec);
-      smaPose(ctVec, sctVec);
+    if (detectLandingPad(frame)) {
+      if (getPose(frame, tVec, rVec) > 0) {
+        getOffsetPose(rVec, tVec, ctVec);
+        smaPose(ctVec, sctVec);
       
-      double dur = CLOCK() - start;
-      auto t = time(nullptr);
-      auto tm = *localtime(&t);
-      frameno++;
+        double dur = CLOCK() - start;
+        auto t = time(nullptr);
+        auto tm = *localtime(&t);
+        frameno++;
       
-      cout << frameno << "\t"
-           << put_time(&tm, "%H:%M:%S") << "\t"
-           << avgDur(dur) << "\t"
-           << avgFPS() << "\t"
-           << ctVec[0] << "\t"
-           << ctVec[1] << "\t"
-           << ctVec[2] << "\t"
-           << sctVec[0] << "\t"
-           << sctVec[1] << "\t"
-           << sctVec[2] << "\t"
-           << endl;
+        cout << frameno << "\t"
+             << put_time(&tm, "%H:%M:%S") << "\t"
+             << avgDur(dur) << "\t"
+             << avgFPS() << "\t"
+             << ctVec[0] << "\t"
+             << ctVec[1] << "\t"
+             << ctVec[2] << "\t"
+             << sctVec[0] << "\t"
+             << sctVec[1] << "\t"
+             << sctVec[2] << "\t"
+             << endl;
+      }
     }
     if (showFrame) imshow("Camera Feed", frame);
     if (waitKey(60) >= 0) break;

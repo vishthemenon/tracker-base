@@ -17,6 +17,7 @@ protected:
   bool showFrame;
 public:
   explicit Tracker(CVCalibration& cvl, bool showFrame=true);
+  virtual bool detectLandingPad(Mat& frame) = 0;
   virtual int getPose(Mat& frame, Vec3d& tVec, Vec3d& rVec) = 0;
   bool startStreamingTrack(int port = 0);
   bool startVideoTrack(const string& fname);
