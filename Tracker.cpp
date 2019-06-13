@@ -78,13 +78,24 @@ Vec3d rotationMatrixToEulerAngles(Mat &R) {
   return Vec3d(x, y, z);
 }
 
-void Tracker::loopedTracking(VideoCapture vid) {
+void Tracker::loopedTracking(VideoCapture vid, bool saveVideo, string filename) {
   Mat frame;
+  VideoWriter rawVideo, procVideo;
+  string rawFilename = "Raw " + filename;
+  string procFilename = filename;
   Vec3d rVec, tVec, ctVec, sctVec;
   int frameno = 0;
   
   cout << "FrameNo\t\tTimestamp\t\t\tRunningTime\tFPS\t\tDist1\t\tDist2\t\tDist3\n";
   if (showFrame) namedWindow("Camera Feed", WINDOW_AUTOSIZE);
+  if (saveVideo) {
+    rawVideo = VideoWriter(rawFilename, VideoWriter::fourcc('M', 'J', 'P', 'G'), 30,
+                           Size(frameWidth, frameHeight),
+                           true);
+    procVideo = VideoWriter(procFilename, VideoWriter::fourcc('M', 'J', 'P', 'G'), 30,
+                            Size(frameWidth, frameHeight),
+                            true);
+  }
   while (true) {
     if (!vid.read(frame)) {
       cerr << "Unable to read next frame. Ending tracking.\n";
@@ -116,6 +127,7 @@ void Tracker::loopedTracking(VideoCapture vid) {
       }
     }
     if (showFrame) imshow("Camera Feed", frame);
+    if (saveVideo) procVideo.write(frame);
     if (waitKey(60) >= 0) break;
   }
 }
@@ -124,7 +136,7 @@ void Tracker::getOffsetPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &otVec) 
   Mat temp;
   Mat R_ct = Mat::eye(3, 3, CV_64F);
   Rodrigues(rVec, R_ct);
-  Vec3d landingOffset = {14.78, 19.17, 0}; // TODO: Abstract this stuff into board logic
+  Vec3d landingOffset = {17.57, 23.72, 0}; // TODO: Abstract this stuff into board logic
   temp = R_ct * landingOffset;
   temp = temp + tVec;
   otVec[0] = temp.at<double>(0, 0);
@@ -158,7 +170,7 @@ void Tracker::smaPose(const Vec3d &ctVec, Vec3d &sctVec) {
   }
 }
 
-bool Tracker::startStreamingTrack(int port) {
+bool Tracker::startStreamingTrack(int port, bool Video, string filename) {
   VideoCapture vid(port);
   vid.set(CAP_PROP_FRAME_WIDTH, frameWidth);
   vid.set(CAP_PROP_FRAME_HEIGHT, frameHeight);
@@ -166,7 +178,7 @@ bool Tracker::startStreamingTrack(int port) {
     cerr << "Unable to read video stream. Is the camera mount path correct?\n";
     return false;
   }
-  loopedTracking(vid);
+  loopedTracking(vid, true, filename);
   return true;
 }
 
@@ -179,4 +191,3 @@ bool Tracker::startVideoTrack(const string &fname) {
   loopedTracking(vid);
   return true;
 }
-
