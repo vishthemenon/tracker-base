@@ -82,7 +82,7 @@ void Tracker::loopedTracking(VideoCapture vid, bool saveVideo, string filename) 
   Mat frame;
   VideoWriter rawVideo, procVideo;
   string rawFilename = "Raw " + filename;
-  string procFilename = filename;
+  const string &procFilename = filename;
   Vec3d rVec, tVec, ctVec, sctVec;
   int frameno = 0;
   
@@ -101,6 +101,7 @@ void Tracker::loopedTracking(VideoCapture vid, bool saveVideo, string filename) 
       cerr << "Unable to read next frame. Ending tracking.\n";
       break;
     };
+    if (saveVideo) rawVideo.write(frame);
   
     auto start = static_cast<clock_t>(CLOCK());
     if (detectLandingPad(frame)) {
@@ -182,12 +183,12 @@ bool Tracker::startStreamingTrack(int port, bool Video, string filename) {
   return true;
 }
 
-bool Tracker::startVideoTrack(const string &fname) {
+bool Tracker::startVideoTrack(const string &fname, bool Video, string filename) {
   VideoCapture vid(fname);
   if (!vid.isOpened()) {
     cerr << "Unable to read video file. Is the filepath correct?\n";
     return false;
   }
-  loopedTracking(vid);
+  loopedTracking(vid, true, filename);
   return true;
 }
