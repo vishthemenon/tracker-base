@@ -44,7 +44,7 @@ double avgDur(double newdur) {
 double avgFPS() {
   if (CLOCK() - _fpsstart > 1000) {
     _fpsstart = CLOCK();
-    _avgfps = 0.7 * _avgfps + 0.3 * _fps1sec;
+    _avgfps = 0.95 * _avgfps + 0.05 * _fps1sec;
     _fps1sec = 0;
   }
   
@@ -83,10 +83,10 @@ void Tracker::loopedTracking(VideoCapture vid, bool saveVideo, string filename) 
   VideoWriter rawVideo, procVideo;
   string rawFilename = "Raw " + filename;
   const string &procFilename = filename;
-  Vec3d rVec, tVec, ctVec, sctVec;
-  int frameno = 0;
+  Vec3d rVec, tVec, stVec;
+  int datano = 0;
   
-  cout << "FrameNo\t\tTimestamp\t\t\tRunningTime\tFPS\t\tDist1\t\tDist2\t\tDist3\n";
+  cout << "Row\tFrame\tRunning\tTimestamp\tFPS\tDist1\tDist2\tDist3\n";
   if (showFrame) namedWindow("Camera Feed", WINDOW_AUTOSIZE);
   if (saveVideo) {
     rawVideo = VideoWriter(rawFilename, VideoWriter::fourcc('M', 'J', 'P', 'G'), 30,
@@ -102,47 +102,36 @@ void Tracker::loopedTracking(VideoCapture vid, bool saveVideo, string filename) 
       break;
     };
     if (saveVideo) rawVideo.write(frame);
-  
+    
     auto start = static_cast<clock_t>(CLOCK());
-    if (detectLandingPad(frame)) {
-      if (getPose(frame, tVec, rVec) > 0) {
-        getOffsetPose(rVec, tVec, ctVec);
-        smaPose(ctVec, sctVec);
+    
+    if (detectLandingPad(frame) && getPose(frame, tVec, rVec) > 0) {
+      smaPose(tVec, stVec);
       
-        double dur = CLOCK() - start;
-        auto t = time(nullptr);
-        auto tm = *localtime(&t);
-        frameno++;
-      
-        cout << frameno << "\t"
-             << put_time(&tm, "%H:%M:%S") << "\t"
-             << avgDur(dur) << "\t"
-             << avgFPS() << "\t"
-             << ctVec[0] << "\t"
-             << ctVec[1] << "\t"
-             << ctVec[2] << "\t"
-             << sctVec[0] << "\t"
-             << sctVec[1] << "\t"
-             << sctVec[2] << "\t"
-             << endl;
-      }
+      datano++;
+      double dur = CLOCK() - start;
+      auto t = time(nullptr);
+      auto tm = *localtime(&t);
+      cout << datano << "\t"
+           << vid.get(CAP_PROP_POS_FRAMES) << "\t"
+           << put_time(&tm, "%H:%M:%S") << "\t"
+           << avgDur(dur) << "\t"
+           << avgFPS() << "\t"
+           << stVec[0] << "\t"
+           << stVec[1] << "\t"
+           << stVec[2] << "\t"
+           << endl;
     }
     if (showFrame) imshow("Camera Feed", frame);
     if (saveVideo) procVideo.write(frame);
-    if (waitKey(60) >= 0) break;
+    char character = static_cast<char>(waitKey(50));
+    switch (character) {
+      case ' ': // Space key -> save image
+        waitKey(0);
+      case 27: // Esc key -> exit prog.
+        break;
+    }
   }
-}
-
-void Tracker::getOffsetPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &otVec) {
-  Mat temp;
-  Mat R_ct = Mat::eye(3, 3, CV_64F);
-  Rodrigues(rVec, R_ct);
-  Vec3d landingOffset = {17.57, 23.72, 0}; // TODO: Abstract this stuff into board logic
-  temp = R_ct * landingOffset;
-  temp = temp + tVec;
-  otVec[0] = temp.at<double>(0, 0);
-  otVec[1] = temp.at<double>(1, 0);
-  otVec[2] = temp.at<double>(2, 0);
 }
 
 void Tracker::getGlobalPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &ctVec) const {
@@ -165,7 +154,7 @@ void Tracker::getGlobalPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &ctVec) 
 }
 
 void Tracker::smaPose(const Vec3d &ctVec, Vec3d &sctVec) {
-  for(int i = 0; i < 3; ++i) {
+  for (int i = 0; i < 3; ++i) {
     ctSMA[i].add(ctVec[i]);
     sctVec[i] = ctSMA[i].avg();
   }

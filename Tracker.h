@@ -23,7 +23,6 @@ public:
   bool startStreamingTrack(int port = 0, bool saveVideo = false, string filename = "TestVideo");
   bool startVideoTrack(const string& fname,  bool saveVideo = false, string filename = "TestVideo");
   
-  void getOffsetPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &otVec);
   void getGlobalPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &ctVec) const;
   void smaPose(const Vec3d &ctVec, Vec3d &sctVec);
 };
