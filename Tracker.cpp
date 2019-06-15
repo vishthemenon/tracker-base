@@ -5,13 +5,9 @@
 
 #include <opencv2/aruco.hpp>
 #include <opencv2/calib3d.hpp>
-#include "SMA.hpp"
 
 using namespace std;
 using namespace cv;
-
-const int SMAL = 5;
-SMA ctSMA[3]{SMA(SMAL), SMA(SMAL), SMA(SMAL)};
 
 Tracker::Tracker(CVCalibration &cvl, bool _showFrame) {
   cameraMatrix = cvl.cameraMatrix;
@@ -25,23 +21,18 @@ Tracker::Tracker(CVCalibration &cvl, bool _showFrame) {
        << frameWidth << "\tFrame Height: " << frameHeight << endl;
 }
 
-double _avgdur = 0;
-int _fpsstart = 0;
-double _avgfps = 0;
-double _fps1sec = 0;
-
-int CLOCK() {
+int Tracker::CLOCK() {
   struct timespec t{};
   clock_gettime(CLOCK_MONOTONIC, &t);
   return static_cast<int>((t.tv_sec * 1000) + (t.tv_nsec * 1e-6));
 }
 
-double avgDur(double newdur) {
+double Tracker::avgDur(double newdur) {
   _avgdur = 0.98 * _avgdur + 0.02 * newdur;
   return _avgdur;
 }
 
-double avgFPS() {
+double Tracker::avgFPS() {
   if (CLOCK() - _fpsstart > 1000) {
     _fpsstart = CLOCK();
     _avgfps = 0.95 * _avgfps + 0.05 * _fps1sec;
@@ -83,7 +74,7 @@ void Tracker::loopedTracking(VideoCapture vid, bool saveVideo, string filename) 
   VideoWriter rawVideo, procVideo;
   string rawFilename = filename + " (Raw).avi";
   string procFilename = filename + " (Proc).avi";
-  Vec3d rVec, tVec, stVec;
+  Vec3d rVec, tVec;
   int datano = 0;
   
   cout << "Row\tFrame\tRunning\tTimestamp\tFPS\tDist1\tDist2\tDist3\n";
@@ -106,7 +97,6 @@ void Tracker::loopedTracking(VideoCapture vid, bool saveVideo, string filename) 
     auto start = static_cast<clock_t>(CLOCK());
     
     if (detectLandingPad(frame) && getPose(frame, tVec, rVec) > 0) {
-      smaPose(tVec, stVec);
       
       datano++;
       double dur = CLOCK() - start;
@@ -117,9 +107,9 @@ void Tracker::loopedTracking(VideoCapture vid, bool saveVideo, string filename) 
            << put_time(&tm, "%H:%M:%S") << "\t"
            << avgDur(dur) << "\t"
            << avgFPS() << "\t"
-           << stVec[0] << "\t"
-           << stVec[1] << "\t"
-           << stVec[2] << "\t"
+           << tVec[0] << "\t"
+           << tVec[1] << "\t"
+           << tVec[2] << "\t"
            << endl;
     }
     if (showFrame) imshow("Camera Feed", frame);
@@ -135,14 +125,14 @@ void Tracker::loopedTracking(VideoCapture vid, bool saveVideo, string filename) 
   
   // When everything done, release the video capture and write object
   vid.release();
-
+  
   if (saveVideo) {
     rawVideo.release();
     procVideo.release();
   }
   
   // Closes all the windows
-  if(showFrame) destroyAllWindows();
+  if (showFrame) destroyAllWindows();
 }
 
 void Tracker::getGlobalPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &ctVec) const {
@@ -162,13 +152,6 @@ void Tracker::getGlobalPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &ctVec) 
   ctVec[0] = -1 * (tVecC.at<double>(0, 0)); // TODO: Abstract this into the board logic
   ctVec[1] = tVecC.at<double>(0, 1);
   ctVec[2] = tVecC.at<double>(0, 2);
-}
-
-void Tracker::smaPose(const Vec3d &ctVec, Vec3d &sctVec) {
-  for (int i = 0; i < 3; ++i) {
-    ctSMA[i].add(ctVec[i]);
-    sctVec[i] = ctSMA[i].avg();
-  }
 }
 
 bool Tracker::startStreamingTrack(int port, bool saveVideo, string filename) {
