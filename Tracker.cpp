@@ -11,7 +11,7 @@ using namespace std;
 using namespace cv;
 
 const int SMAL = 5;
-SMA ctSMA[3] {SMA(SMAL), SMA(SMAL), SMA(SMAL)};
+SMA ctSMA[3]{SMA(SMAL), SMA(SMAL), SMA(SMAL)};
 
 Tracker::Tracker(CVCalibration &cvl, bool _showFrame) {
   cameraMatrix = cvl.cameraMatrix;
@@ -81,8 +81,8 @@ Vec3d rotationMatrixToEulerAngles(Mat &R) {
 void Tracker::loopedTracking(VideoCapture vid, bool saveVideo, string filename) {
   Mat frame;
   VideoWriter rawVideo, procVideo;
-  string rawFilename = "Raw " + filename;
-  const string &procFilename = filename;
+  string rawFilename = filename + " (Raw).avi";
+  string procFilename = filename + " (Proc).avi";
   Vec3d rVec, tVec, stVec;
   int datano = 0;
   
@@ -132,6 +132,17 @@ void Tracker::loopedTracking(VideoCapture vid, bool saveVideo, string filename) 
         break;
     }
   }
+  
+  // When everything done, release the video capture and write object
+  vid.release();
+
+  if (saveVideo) {
+    rawVideo.release();
+    procVideo.release();
+  }
+  
+  // Closes all the windows
+  if(showFrame) destroyAllWindows();
 }
 
 void Tracker::getGlobalPose(const Vec3d &rVec, const Vec3d &tVec, Vec3d &ctVec) const {
@@ -160,7 +171,7 @@ void Tracker::smaPose(const Vec3d &ctVec, Vec3d &sctVec) {
   }
 }
 
-bool Tracker::startStreamingTrack(int port, bool Video, string filename) {
+bool Tracker::startStreamingTrack(int port, bool saveVideo, string filename) {
   VideoCapture vid(port);
   vid.set(CAP_PROP_FRAME_WIDTH, frameWidth);
   vid.set(CAP_PROP_FRAME_HEIGHT, frameHeight);
@@ -168,16 +179,16 @@ bool Tracker::startStreamingTrack(int port, bool Video, string filename) {
     cerr << "Unable to read video stream. Is the camera mount path correct?\n";
     return false;
   }
-  loopedTracking(vid, true, filename);
+  loopedTracking(vid, saveVideo, filename);
   return true;
 }
 
-bool Tracker::startVideoTrack(const string &fname, bool Video, string filename) {
+bool Tracker::startVideoTrack(const string &fname, bool saveVideo, string filename) {
   VideoCapture vid(fname);
   if (!vid.isOpened()) {
     cerr << "Unable to read video file. Is the filepath correct?\n";
     return false;
   }
-  loopedTracking(vid, true, filename);
+  loopedTracking(vid, saveVideo, filename);
   return true;
 }
