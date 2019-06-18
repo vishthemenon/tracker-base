@@ -72,18 +72,18 @@ Vec3d rotationMatrixToEulerAngles(Mat &R) {
 void Tracker::loopedTracking(VideoCapture vid, bool saveVideo, string filename) {
   Mat frame;
   VideoWriter rawVideo, procVideo;
-  string rawFilename = filename + " (Raw).avi";
-  string procFilename = filename + " (Proc).avi";
+  string rawFilename = filename + " (Raw).mp4";
+  string procFilename = filename + " (Proc).mp4";
   Vec3d rVec, tVec;
   int datano = 0;
   
   cout << "Row\tFrame\tRunning\tTimestamp\tFPS\tDist1\tDist2\tDist3\n";
   if (showFrame) namedWindow("Camera Feed", WINDOW_AUTOSIZE);
   if (saveVideo) {
-    rawVideo = VideoWriter(rawFilename, VideoWriter::fourcc('M', 'J', 'P', 'G'), 30,
+    rawVideo = VideoWriter(rawFilename, VideoWriter::fourcc('A', 'V', 'C', '1'), 30,
                            Size(frameWidth, frameHeight),
                            true);
-    procVideo = VideoWriter(procFilename, VideoWriter::fourcc('M', 'J', 'P', 'G'), 30,
+    procVideo = VideoWriter(procFilename, VideoWriter::fourcc('A', 'V', 'C', '1'), 30,
                             Size(frameWidth, frameHeight),
                             true);
   }
